@@ -5,7 +5,7 @@ from past.builtins import xrange
 
 
 class KNearestNeighbor(object):
-    """ a kNN classifier with L2 distance """
+    """a kNN classifier with L2 distance"""
 
     def __init__(self):
         pass
@@ -77,7 +77,10 @@ class KNearestNeighbor(object):
                 #####################################################################
                 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-                pass
+                # Calculate the distance between each test point (i) and every training point (j)
+                point_distance = np.sqrt(np.sum(np.square(X[i] - self.X_train[j])))
+                # Record the distance to the array holding distance between and test vs all train
+                dists[i, j] = point_distance
 
                 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return dists
@@ -101,7 +104,8 @@ class KNearestNeighbor(object):
             #######################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            pass
+            distance = np.sqrt(np.sum(np.square(X[i, :] - self.X_train), axis=1))
+            dists[i, :] = distance
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return dists
@@ -131,7 +135,12 @@ class KNearestNeighbor(object):
         #########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        dists = np.sqrt(
+            -2 * (X @ self.X_train.T)
+            + np.square(X).sum(axis=1, keepdims=True)
+            + np.square(self.X_train).sum(axis=1, keepdims=True).T
+        )
+        # dists = np.sqrt(np.sum(np.square(X - self.X_train[:, np.newaxis]), axis=0))
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return dists
@@ -164,7 +173,10 @@ class KNearestNeighbor(object):
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            pass
+            # Finding the index of the k neighbors (by columns in each row of dists)
+            top_k_neighbors_idx = np.argpartition(dists[i], k)[:k]
+            # Get the labels
+            closest_y = self.y_train[top_k_neighbors_idx]
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
             #########################################################################
@@ -176,7 +188,7 @@ class KNearestNeighbor(object):
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            pass
+            y_pred[i] = np.argmax(np.bincount(closest_y))
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
