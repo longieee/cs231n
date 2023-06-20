@@ -37,6 +37,8 @@ def svm_loss_naive(W, X, y, reg):
             margin = scores[j] - correct_class_score + 1  # note delta = 1
             if margin > 0:
                 loss += margin
+                dW[:, j] += X[i]
+                dW[:, y[i]] -= X[i]
 
     # Right now the loss is a sum over all training examples, but we want it
     # to be an average instead so we divide by num_train.
@@ -48,14 +50,15 @@ def svm_loss_naive(W, X, y, reg):
     #############################################################################
     # TODO:                                                                     #
     # Compute the gradient of the loss function and store it dW.                #
-    # Rather that first computing the loss and then computing the derivative,   #
+    # Rather than first computing the loss and then computing the derivative,   #
     # it may be simpler to compute the derivative at the same time that the     #
     # loss is being computed. As a result you may need to modify some of the    #
     # code above to compute the gradient.                                       #
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    dW /= num_train
+    dW += 2 * reg * W
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -78,7 +81,14 @@ def svm_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    delta = 1
+    num_train = X.shape[0]
+    scores = X @ W  # shape (N,C)
+    # np.maximum -> element-wise comparison
+    # providing no axis to np.sum -> sum over all elements
+    margins = np.maximum(0, scores - scores[range(num_train), y][:, np.newaxis] + delta)  # shape (D,C)
+    # -1 because in the sum calculation for loss, we still include the column for yi, but our calculation need to leave out this
+    loss = margins.sum() / num_train - 1 + reg * np.sum(W * W)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -93,7 +103,12 @@ def svm_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    # Gradient mask for classes i != yi is xi
+    dW = (margins > 0).astype(int)  # Value 1 whenever margins > 0
+    # Gradient mask correction for class yi (which is -xi)
+    dW[range(num_train), y] -= dW.sum(axis=1)
+    # Multiply mask by X
+    dW = X.T @ dW / num_train + 2 * reg * W
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
