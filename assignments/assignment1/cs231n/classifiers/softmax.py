@@ -34,7 +34,21 @@ def softmax_loss_naive(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    num_train = X.shape[0]
+
+    for i in range(num_train):
+        f = X[i] @ W  # shape (1,C)
+        f -= -np.max(f)  # shift the values of f so that the highest number is 0
+        softmax = np.exp(f) / np.sum(np.exp(f))  # shape (1,C)
+        loss -= np.log(softmax[y[i]])  # cross-entropy loss
+
+        # Adjust softmax for gradient calculation
+        softmax[y[i]] -= 1
+        dW += np.outer(X[i], softmax)
+
+    # Regularization
+    loss = loss / num_train + reg * np.sum(W**2)
+    dW = dW / num_train + 2 * reg * W
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -59,7 +73,19 @@ def softmax_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N = X.shape[0]
+
+    Z = X @ W  # shape (N,C)
+    softmax = np.exp(Z - np.max(Z, axis=1, keepdims=True))  # Stabilization
+    A = softmax / softmax.sum(axis=1, keepdims=True)  # Shape (N,C)
+    loss = -np.log(A[range(N), y]).sum()
+
+    # Adjust softmax for gradient calculation
+    A[range(N), y] -= 1
+
+    # Regularization
+    loss = loss / N + reg * np.sum(W**2)
+    dW = X.T @ A / N + 2 * reg * W
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
